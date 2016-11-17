@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,14 +45,11 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                String path = Environment.getExternalStorageDirectory().toString()+"/Pictures";
-                Log.d("Files", "Path: " + path);
-                File f = new File(path);
-                File file[] = f.listFiles();
-                Log.d("Files", "Size: "+ file.length);
-                for (int i=0; i < file.length; i++)
-                {
-                    Log.d("Files", "FileName:" + file[i].getName());
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath() +"/BTransfers";
+                try {
+                    splitFile(path);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -60,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
         btn2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                String path = Environment.getExternalStorageDirectory().toString()+"/Download";
+                String path = Environment.getExternalStorageDirectory().toString()+"/BTransfers";
                 try {
-                    splitFile(path);
+                    joinFiles(path);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -94,34 +92,66 @@ public class MainActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public static void splitFile(String filePath) throws IOException {
-        File f = new File(filePath + "/xda-lab.apk");
+        File f = new File(filePath, "image.jpg");
         if(!f.isFile()){
             return;
         }
 
         int partCounter = 1;
 
-        int sizeOfFiles = 1024 * 1024;// 1MB
+        int sizeOfFiles = 1024 * 256;// 1MB
         byte[] buffer = new byte[sizeOfFiles];
 
-        try (BufferedInputStream bis = new BufferedInputStream(
-                new FileInputStream(f))) {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f))) {
             String name = f.getName();
 
             int tmp = 0;
             while ((tmp = bis.read(buffer)) > 0) {
                 //write each chunk of data into separate file with different number in name
-                File newFile = new File(f.getParent(), name + "."
-                        + String.format("%03d", partCounter++));
+                File newFile = new File(f.getParent(), name + "." + String.format("%03d", partCounter++));
+                newFile.createNewFile();
                 try (FileOutputStream out = new FileOutputStream(newFile)) {
                     out.write(buffer, 0, tmp);//tmp is chunk size
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public static void joinFiles(String filePath) throws IOException {
+        int partCounter = 1;
+
+        int sizeOfFiles = 1024 * 256;// 1MB
+
+        while(true) {
+            File f = new File(filePath, "image.jpg" + "." + String.format("%03d", partCounter++));
+            if(!f.isFile()){
+                return;
+            }
+
+            byte[] buffer = new byte[sizeOfFiles];
+
+            try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f))) {
+                bis.read(buffer);
+
+                try (FileOutputStream out = new FileOutputStream(new File(f.getParent() + "/image_new.jpg"), true)) {
+                    out.write(trim(buffer));
+                    out.close();
                 }
             }
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    public static void mergeFiles(String sharePath) throws IOException {
+    private static byte[] trim(byte[] bytes)
+    {
+        int i = bytes.length - 1;
+        while (i >= 0 && bytes[i] == 0)
+        {
+            --i;
+        }
 
+        return Arrays.copyOf(bytes, i + 1);
     }
 }
