@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                String path = Environment.getExternalStorageDirectory().getAbsolutePath() +"/BTransfers";
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BTransfers";
                 try {
                     splitFile(path);
                 } catch (IOException e) {
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         btn2.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                String path = Environment.getExternalStorageDirectory().toString()+"/BTransfers";
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BTransfers";
                 try {
                     joinFiles(path);
                 } catch (IOException e) {
@@ -92,14 +92,14 @@ public class MainActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public static void splitFile(String filePath) throws IOException {
-        File f = new File(filePath, "image.jpg");
+        File f = new File(filePath, "apk_file.apk");
         if(!f.isFile()){
             return;
         }
 
         int partCounter = 1;
 
-        int sizeOfFiles = 1024 * 256;// 1MB
+        int sizeOfFiles = 1024 * 1024;// 1MB
         byte[] buffer = new byte[sizeOfFiles];
 
         try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f))) {
@@ -123,35 +123,25 @@ public class MainActivity extends AppCompatActivity {
     public static void joinFiles(String filePath) throws IOException {
         int partCounter = 1;
 
-        int sizeOfFiles = 1024 * 256;// 1MB
+        int sizeOfFiles = 1024 * 1024;// 1MB
 
         while(true) {
-            File f = new File(filePath, "image.jpg" + "." + String.format("%03d", partCounter++));
+            File f = new File(filePath, "apk_file.apk" + "." + String.format("%03d", partCounter++));
             if(!f.isFile()){
                 return;
             }
 
-            byte[] buffer = new byte[sizeOfFiles];
+            int fileSize = (int)f.length();
+            byte[] buffer = new byte[fileSize];
 
             try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f))) {
                 bis.read(buffer);
 
-                try (FileOutputStream out = new FileOutputStream(new File(f.getParent() + "/image_new.jpg"), true)) {
-                    out.write(trim(buffer));
+                try (FileOutputStream out = new FileOutputStream(new File(f.getParent() + "/apk_file_new.apk"), true)) {
+                    out.write(buffer);
                     out.close();
                 }
             }
         }
-    }
-
-    private static byte[] trim(byte[] bytes)
-    {
-        int i = bytes.length - 1;
-        while (i >= 0 && bytes[i] == 0)
-        {
-            --i;
-        }
-
-        return Arrays.copyOf(bytes, i + 1);
     }
 }
