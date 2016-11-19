@@ -13,7 +13,14 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+
+import com.android.rye.bluetoothtransfer.data.RFile;
+import com.android.rye.bluetoothtransfer.data.RFileAdapter;
+import com.android.rye.bluetoothtransfer.helper.FileHelper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,9 +28,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    List<RFile>             m_arrayList;
+    RFileAdapter            m_arrayAdapter;
+    ListView                m_listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,31 +54,52 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button btn = (Button) findViewById(R.id.button_temp);
-        btn.setOnClickListener(new View.OnClickListener(){
+        m_listView = (ListView) findViewById(R.id.lv_main);
+
+        m_arrayList = FileHelper.GetFiles(Environment.getExternalStorageDirectory().getAbsolutePath());
+        m_arrayAdapter = new RFileAdapter(MainActivity.this, 1, m_arrayList);
+
+        m_listView.setAdapter(m_arrayAdapter);
+
+        m_listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BTransfers";
-                try {
-                    splitFile(path);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                String _targetPath = m_arrayAdapter.getItem(position).getPath();
+
+                m_arrayList.clear();
+                m_arrayList = FileHelper.GetFiles(_targetPath);
+
+                m_arrayAdapter.addAll(m_arrayList);
+                m_arrayAdapter.notifyDataSetChanged();
             }
         });
 
-        Button btn2 = (Button) findViewById(R.id.button);
-        btn2.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BTransfers";
-                try {
-                    joinFiles(path);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+
+//        Button btn = (Button) findViewById(R.id.button_temp);
+//        btn.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View v) {
+//                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BTransfers";
+//                try {
+//                    splitFile(path);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+//
+//        Button btn2 = (Button) findViewById(R.id.button);
+//        btn2.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View v) {
+//                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BTransfers";
+//                try {
+//                    joinFiles(path);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
     }
 
     @Override
