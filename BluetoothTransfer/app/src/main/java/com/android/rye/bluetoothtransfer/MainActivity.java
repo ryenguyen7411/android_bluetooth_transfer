@@ -1,14 +1,21 @@
 package com.android.rye.bluetoothtransfer;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.text.TextUtilsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -17,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.android.rye.bluetoothtransfer.data.RFile;
 import com.android.rye.bluetoothtransfer.data.RFileAdapter;
@@ -37,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
     List<RFile>             m_arrayList;
     RFileAdapter            m_arrayAdapter;
     ListView                m_listView;
+     String                 path;
+
+    private static final int DISCOVER_DURATION = 300;
+    private static final int REQUEST_BLU = 1;
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,14 +78,34 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id){
                 String _targetPath = m_arrayAdapter.getItem(position).getPath();
+                if(!TextUtils.isEmpty(_targetPath)){
+                    File file = new File(_targetPath);
+                    if(file.isDirectory()){
+                        m_arrayList = FileHelper.GetFiles(_targetPath);
+                        if(m_arrayList != null && m_arrayList.size() != 0){
+                            m_arrayList.clear();
+                            m_arrayList = FileHelper.GetFiles(_targetPath);
+                            m_arrayAdapter.clear();
+                            m_arrayAdapter.addAll(m_arrayList);
+                            m_arrayAdapter.notifyDataSetChanged();
+                        }
+                    } else {
 
-                m_arrayList.clear();
-                m_arrayList = FileHelper.GetFiles(_targetPath);
+                        Log.e(TAG, "onItemClick: ");
+                        Toast.makeText(MainActivity.this, "Send File", Toast.LENGTH_LONG).show();
+                        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                        path= _targetPath;
+                        if (bluetoothAdapter == null) {
 
-                m_arrayAdapter.addAll(m_arrayList);
-                m_arrayAdapter.notifyDataSetChanged();
+                        } else {
+                            enableBlutooth();
+                        }
+
+                    }
+                }
             }
         });
+
 
 
 //        Button btn = (Button) findViewById(R.id.button_temp);
@@ -100,6 +133,21 @@ public class MainActivity extends AppCompatActivity {
 //                }
 //            }
 //        });
+//        m_listView.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//                if (bluetoothAdapter == null) {
+//                    Toast.makeText(this, " Blutooth is not supppored on this device", Toast.LENGTH_LONG).show();
+//                } else {
+//                    enableBlutooth();
+//                }
+//
+//                return false;
+//            }
+//        });
+
+
     }
 
     @Override
@@ -177,5 +225,62 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+
+    public void enableBlutooth() {
+        Intent discoveryIntent = new Intent((BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE));
+        discoveryIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVER_DURATION);
+        startActivityForResult(discoveryIntent, REQUEST_BLU);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == DISCOVER_DURATION && requestCode == REQUEST_BLU) {
+            Intent intent = new Intent();
+            intent.setAction((Intent.ACTION_SEND));
+
+            //send audio file
+//            intent.setType("audio/*");
+            intent.setType("*/*");
+
+
+            File f = new File( path);
+            Log.e(TAG, "onActivityResult: " + f.getAbsolutePath());
+            if (f.exists()) {
+                intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(f));
+                PackageManager packageManager = getPackageManager();
+                List<ResolveInfo> appsList = packageManager.queryIntentActivities(intent, 0);
+                if ((appsList.size() > 0)) {
+                    String packageName = null;
+                    String ClassName = null;
+                    boolean found = false;
+                    for (ResolveInfo info : appsList) {
+                        packageName = info.activityInfo.packageName;
+                        if ((packageName.equals("com.android.bluetooth"))) {
+                            ClassName = info.activityInfo.name;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        Toast.makeText(this, " Blutooth  have been not found", Toast.LENGTH_LONG).show();
+                    } else {
+                        intent.setClassName(packageName, ClassName);
+                        startActivity(intent);
+                    }
+
+                }
+
+            } else {
+                Toast.makeText(this, " Blutooth is canceld", Toast.LENGTH_LONG).show();
+            }
+
+        } else {
+            Toast.makeText(this, "File Not Found", Toast.LENGTH_LONG).show();
+        }
+
+
     }
 }

@@ -38,6 +38,7 @@ public class Send_File extends AppCompatActivity {
     }
 
     public void enableBlutooth() {
+        Log.e(TAG, "enableBlutooth: ");
         Intent discoveryIntent = new Intent((BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE));
         discoveryIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVER_DURATION);
         startActivityForResult(discoveryIntent, REQUEST_BLU);
@@ -46,6 +47,7 @@ public class Send_File extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.e(TAG, "onActivityResult: ");
         if (resultCode == DISCOVER_DURATION && requestCode == REQUEST_BLU) {
             Intent intent = new Intent();
             intent.setAction((Intent.ACTION_SEND));
@@ -54,7 +56,7 @@ public class Send_File extends AppCompatActivity {
             intent.setType("audio/*");
 
 
-            File f = new File(Environment.getExternalStorageDirectory(), "nghia.mp3");
+            File f = new File(Environment.getExternalStorageDirectory(), "dfdfd");
             Log.e(TAG, "onActivityResult: " + f.getAbsolutePath());
             if (f.exists()) {
                 intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(f));

@@ -1,5 +1,7 @@
 package com.android.rye.bluetoothtransfer.helper;
 
+import android.util.Log;
+
 import com.android.rye.bluetoothtransfer.data.RFile;
 
 import java.io.File;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 
 public class FileHelper {
 
+    private static final String TAG = "FileHelper";
     public static ArrayList<RFile> GetFiles(String _path)
     {
         ArrayList<RFile> files = new ArrayList<RFile>();
@@ -21,6 +24,9 @@ public class FileHelper {
             return null;
 
         File[] listOfFiles = folder.listFiles();
+        for(File item: listOfFiles){
+            Log.e(TAG, "GetFiles: " + item.getAbsolutePath());
+        }
 
         for(int i = 0; i < listOfFiles.length; i++)
         {
