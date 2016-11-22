@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.android.rye.bluetoothtransfer.R;
@@ -18,9 +19,13 @@ import java.util.List;
 public class RFileAdapter extends ArrayAdapter<RFile> {
     Activity context;
 
+    boolean     m_isCheckable;
+
     public RFileAdapter(Activity context, int layoutId, List<RFile> objects) {
         super(context, layoutId, objects);
         this.context = context;
+
+        m_isCheckable = false;
     }
 
     @Override
@@ -31,9 +36,16 @@ public class RFileAdapter extends ArrayAdapter<RFile> {
 
         RFile file = getItem(position);
 
+        CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.rfileCheckBox);
+        checkBox.setVisibility(m_isCheckable == true ? View.VISIBLE : View.GONE);
+
         TextView tvName = (TextView) convertView.findViewById(R.id.rfileName);
         tvName.setText(file.getName());
 
         return convertView;
+    }
+
+    public void setCheckBoxCheckable(boolean checkable) {
+        m_isCheckable = checkable;
     }
 }

@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -42,9 +43,13 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    List<RFile>             m_arrayList;
+    ArrayList<RFile>        m_arrayList;
     RFileAdapter            m_arrayAdapter;
     ListView                m_listView;
+
+    ArrayList<RFile>        m_checkedList;
+    boolean                 m_isCheckable;
+
      String                 path;
 
     private static final int DISCOVER_DURATION = 300;
@@ -74,39 +79,111 @@ public class MainActivity extends AppCompatActivity {
 
         m_listView.setAdapter(m_arrayAdapter);
 
+        m_checkedList = new ArrayList<RFile>();
+        m_isCheckable = false;
+
         m_listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-                String _targetPath = m_arrayAdapter.getItem(position).getPath();
-                if(!TextUtils.isEmpty(_targetPath)){
-                    File file = new File(_targetPath);
-                    if(file.isDirectory()){
-                        m_arrayList = FileHelper.GetFiles(_targetPath);
-                        if(m_arrayList != null && m_arrayList.size() != 0){
-                            m_arrayList.clear();
-                            m_arrayList = FileHelper.GetFiles(_targetPath);
-                            m_arrayAdapter.clear();
-                            m_arrayAdapter.addAll(m_arrayList);
-                            m_arrayAdapter.notifyDataSetChanged();
-                        }
+
+                if(m_isCheckable != true) {
+                    String currentItemPath = m_arrayAdapter.getItem(position).getPath();
+                    File currentItem = new File(currentItemPath);
+
+                    if(currentItem.isDirectory()) {
+
+                        m_arrayList.clear();
+                        m_arrayList = FileHelper.GetFiles(currentItemPath);
+
+                        m_arrayAdapter.clear();
+                        m_arrayAdapter.addAll(m_arrayList);
+                        m_arrayAdapter.notifyDataSetChanged();
+                    } else if(currentItem.isFile()) {
+                        Toast.makeText(MainActivity.this, "Opening " + currentItem.getName(), Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    if(m_listView.isItemChecked(position)) {
+                        m_checkedList.add(m_arrayAdapter.getItem(position));
                     } else {
+                        m_checkedList.remove(m_arrayAdapter.getItem(position));
 
-                        Log.e(TAG, "onItemClick: ");
-                        Toast.makeText(MainActivity.this, "Send File", Toast.LENGTH_LONG).show();
-                        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                        path= _targetPath;
-                        if (bluetoothAdapter == null) {
+                        if(m_checkedList.size() == 0) {
+                            m_isCheckable = false;
 
-                        } else {
-                            enableBlutooth();
+                            m_arrayAdapter.setCheckBoxCheckable(false);
+                            m_arrayAdapter.notifyDataSetChanged();
+
+//                            CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
+//                            checkBox.setVisibility(View.GONE);
                         }
-
                     }
                 }
+
+//                String _targetPath = m_arrayAdapter.getItem(position).getPath();
+//                if(!TextUtils.isEmpty(_targetPath)){
+//                    File file = new File(_targetPath);
+//                    if(file.isDirectory()){
+//                        m_arrayList = FileHelper.GetFiles(_targetPath);
+//                        if(m_arrayList != null && m_arrayList.size() != 0){
+//                            m_arrayList.clear();
+//                            m_arrayList = FileHelper.GetFiles(_targetPath);
+//
+//                            m_arrayAdapter.clear();
+//                            m_arrayAdapter.addAll(m_arrayList);
+//                            m_arrayAdapter.notifyDataSetChanged();
+//                        }
+//                    } else {
+//
+//                        Log.e(TAG, "onItemClick: ");
+//                        Toast.makeText(MainActivity.this, "Send File", Toast.LENGTH_LONG).show();
+//                        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//                        path= _targetPath;
+//                        if (bluetoothAdapter == null) {
+//
+//                        } else {
+//                            enableBlutooth();
+//                        }
+//
+//                    }
+//                }
             }
         });
 
+        m_listView.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
+                if(m_isCheckable != true) {
+                    m_isCheckable= true;
+
+                    m_arrayAdapter.setCheckBoxCheckable(true);
+                    m_arrayAdapter.notifyDataSetChanged();
+
+//                    CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
+//                    checkBox.setVisibility(View.VISIBLE);
+
+                    m_checkedList.add(m_arrayAdapter.getItem(position));
+                } else {
+                    if(m_listView.isItemChecked(position)) {
+                        m_checkedList.add(m_arrayAdapter.getItem(position));
+                    } else {
+                        m_checkedList.remove(m_arrayAdapter.getItem(position));
+
+                        if(m_checkedList.size() == 0) {
+                            m_isCheckable = false;
+
+                            m_arrayAdapter.setCheckBoxCheckable(false);
+                            m_arrayAdapter.notifyDataSetChanged();
+
+//                            CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
+//                            checkBox.setVisibility(View.GONE);
+                        }
+                    }
+                }
+
+                return true;
+            }
+        });
 
 //        Button btn = (Button) findViewById(R.id.button_temp);
 //        btn.setOnClickListener(new View.OnClickListener(){
@@ -280,7 +357,5 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "File Not Found", Toast.LENGTH_LONG).show();
         }
-
-
     }
 }
