@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.android.rye.bluetoothtransfer.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,13 +20,15 @@ import java.util.List;
 public class RFileAdapter extends ArrayAdapter<RFile> {
     Activity context;
 
-    boolean     m_isCheckable;
+    boolean             m_isCheckable;
+    ArrayList<RFile>    m_checkedList;
 
     public RFileAdapter(Activity context, int layoutId, List<RFile> objects) {
         super(context, layoutId, objects);
         this.context = context;
 
         m_isCheckable = false;
+        m_checkedList = new ArrayList<RFile>();
     }
 
     @Override
@@ -47,5 +50,31 @@ public class RFileAdapter extends ArrayAdapter<RFile> {
 
     public void setCheckBoxCheckable(boolean checkable) {
         m_isCheckable = checkable;
+        notifyDataSetChanged();
+    }
+
+    public void toggleCurrentRFile(View view, boolean checked, RFile currentItem) {
+        CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
+        checkBox.setChecked(checked);
+
+        if(checked == true) {
+            m_checkedList.add(currentItem);
+        } else {
+            m_checkedList.remove(currentItem);
+
+            if(m_checkedList.size() == 0) {
+                setCheckBoxCheckable(false);
+                notifyDataSetChanged();
+            }
+        }
+    }
+
+    public boolean isChecked(View view) {
+        CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
+        return checkBox.isChecked();
+    }
+
+    public boolean isCheckable() {
+        return m_isCheckable;
     }
 }

@@ -47,9 +47,6 @@ public class MainActivity extends AppCompatActivity {
     RFileAdapter            m_arrayAdapter;
     ListView                m_listView;
 
-    ArrayList<RFile>        m_checkedList;
-    boolean                 m_isCheckable;
-
      String                 path;
 
     private static final int DISCOVER_DURATION = 300;
@@ -79,14 +76,11 @@ public class MainActivity extends AppCompatActivity {
 
         m_listView.setAdapter(m_arrayAdapter);
 
-        m_checkedList = new ArrayList<RFile>();
-        m_isCheckable = false;
-
         m_listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id){
 
-                if(m_isCheckable != true) {
+                if(m_arrayAdapter.isCheckable() != true) {
                     String currentItemPath = m_arrayAdapter.getItem(position).getPath();
                     File currentItem = new File(currentItemPath);
 
@@ -102,20 +96,10 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Opening " + currentItem.getName(), Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    if(m_listView.isItemChecked(position)) {
-                        m_checkedList.add(m_arrayAdapter.getItem(position));
+                    if(!m_arrayAdapter.isChecked(view)) {
+                        m_arrayAdapter.toggleCurrentRFile(view, true, m_arrayAdapter.getItem(position));
                     } else {
-                        m_checkedList.remove(m_arrayAdapter.getItem(position));
-
-                        if(m_checkedList.size() == 0) {
-                            m_isCheckable = false;
-
-                            m_arrayAdapter.setCheckBoxCheckable(false);
-                            m_arrayAdapter.notifyDataSetChanged();
-
-//                            CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
-//                            checkBox.setVisibility(View.GONE);
-                        }
+                        m_arrayAdapter.toggleCurrentRFile(view, false, m_arrayAdapter.getItem(position));
                     }
                 }
 
@@ -153,31 +137,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if(m_isCheckable != true) {
-                    m_isCheckable= true;
-
+                if(m_arrayAdapter.isCheckable() != true) {
                     m_arrayAdapter.setCheckBoxCheckable(true);
-                    m_arrayAdapter.notifyDataSetChanged();
 
 //                    CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
 //                    checkBox.setVisibility(View.VISIBLE);
 
-                    m_checkedList.add(m_arrayAdapter.getItem(position));
+                    m_arrayAdapter.toggleCurrentRFile(view, true, m_arrayAdapter.getItem(position));
                 } else {
-                    if(m_listView.isItemChecked(position)) {
-                        m_checkedList.add(m_arrayAdapter.getItem(position));
+                    if(!m_arrayAdapter.isChecked(view)) {
+                        m_arrayAdapter.toggleCurrentRFile(view, true, m_arrayAdapter.getItem(position));
                     } else {
-                        m_checkedList.remove(m_arrayAdapter.getItem(position));
-
-                        if(m_checkedList.size() == 0) {
-                            m_isCheckable = false;
-
-                            m_arrayAdapter.setCheckBoxCheckable(false);
-                            m_arrayAdapter.notifyDataSetChanged();
-
-//                            CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
-//                            checkBox.setVisibility(View.GONE);
-                        }
+                        m_arrayAdapter.toggleCurrentRFile(view, false, m_arrayAdapter.getItem(position));
                     }
                 }
 

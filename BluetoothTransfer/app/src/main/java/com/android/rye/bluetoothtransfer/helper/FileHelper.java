@@ -28,6 +28,7 @@ public class FileHelper {
             Log.e(TAG, "GetFiles: " + item.getAbsolutePath());
         }
 
+        files.add(new RFile("..", folder.getParent()));
         for(int i = 0; i < listOfFiles.length; i++)
         {
             files.add(new RFile(listOfFiles[i].getName(), listOfFiles[i].getAbsolutePath()));
@@ -35,5 +36,4 @@ public class FileHelper {
 
         return files;
     }
-
 }
