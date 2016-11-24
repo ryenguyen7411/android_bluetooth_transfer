@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         m_listView = (ListView) findViewById(R.id.lv_main);
 
-        m_arrayList = FileHelper.GetFiles(Environment.getExternalStorageDirectory().getAbsolutePath());
+        m_arrayList = FileHelper.GetFiles(Environment.getExternalStorageDirectory().getPath());
         m_arrayAdapter = new RFileAdapter(MainActivity.this, 1, m_arrayList);
 
         m_listView.setAdapter(m_arrayAdapter);
@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
                     File currentItem = new File(currentItemPath);
 
                     if(currentItem.isDirectory()) {
-
                         m_arrayList.clear();
                         m_arrayList = FileHelper.GetFiles(currentItemPath);
 
@@ -93,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                         m_arrayAdapter.addAll(m_arrayList);
                         m_arrayAdapter.notifyDataSetChanged();
                     } else if(currentItem.isFile()) {
-                        Toast.makeText(MainActivity.this, "Opening " + currentItem.getName(), Toast.LENGTH_LONG).show();
+                        startActivity(FileHelper.OpenFile(currentItemPath));
                     }
                 } else {
                     if(!m_arrayAdapter.isChecked(view)) {
