@@ -2,6 +2,8 @@ package com.android.rye.bluetoothtransfer.data;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -23,12 +25,16 @@ public class RFileAdapter extends ArrayAdapter<RFile> {
     boolean             m_isCheckable;
     ArrayList<RFile>    m_checkedList;
 
+    boolean             m_isShareable;
+
     public RFileAdapter(Activity context, int layoutId, List<RFile> objects) {
         super(context, layoutId, objects);
         this.context = context;
 
         m_isCheckable = false;
         m_checkedList = new ArrayList<RFile>();
+
+        m_isShareable = false;
     }
 
     @Override
@@ -61,10 +67,17 @@ public class RFileAdapter extends ArrayAdapter<RFile> {
             m_checkedList.add(currentItem);
         } else {
             m_checkedList.remove(currentItem);
+        }
 
-            if(m_checkedList.size() == 0) {
-                setCheckBoxCheckable(false);
-                notifyDataSetChanged();
+        if(m_checkedList.size() == 0)
+            m_isShareable = false;
+        else {
+            m_isShareable = true;
+            for(int i = 0; i< m_checkedList.size(); i++) {
+                if(!m_checkedList.get(i).isFile()) {
+                    m_isShareable = false;
+                    break;
+                }
             }
         }
     }
@@ -77,4 +90,8 @@ public class RFileAdapter extends ArrayAdapter<RFile> {
     public boolean isCheckable() {
         return m_isCheckable;
     }
+
+    public ArrayList<RFile> getCheckedList() { return m_checkedList; }
+
+    public boolean isShareable() { return m_isShareable; }
 }

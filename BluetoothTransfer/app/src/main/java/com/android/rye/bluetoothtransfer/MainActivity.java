@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     RFileAdapter            m_arrayAdapter;
     ListView                m_listView;
 
+    Menu                    m_menu;
+
      String                 path;
 
     private static final int DISCOVER_DURATION = 300;
@@ -69,18 +71,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        /* Init variable - S */
         m_listView = (ListView) findViewById(R.id.lv_main);
 
         m_arrayList = FileHelper.GetFiles(Environment.getExternalStorageDirectory().getPath());
         m_arrayAdapter = new RFileAdapter(MainActivity.this, 1, m_arrayList);
 
         m_listView.setAdapter(m_arrayAdapter);
+        /* Init variable - E */
 
         m_listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-
-                if(m_arrayAdapter.isCheckable() != true) {
+                if(m_arrayAdapter.isCheckable() != true) { /* File/folder browsing */
                     String currentItemPath = m_arrayAdapter.getItem(position).getPath();
                     File currentItem = new File(currentItemPath);
 
@@ -94,11 +98,16 @@ public class MainActivity extends AppCompatActivity {
                     } else if(currentItem.isFile()) {
                         startActivity(FileHelper.OpenFile(currentItemPath));
                     }
-                } else {
+                } else { /* Selected mode */
                     if(!m_arrayAdapter.isChecked(view)) {
                         m_arrayAdapter.toggleCurrentRFile(view, true, m_arrayAdapter.getItem(position));
                     } else {
                         m_arrayAdapter.toggleCurrentRFile(view, false, m_arrayAdapter.getItem(position));
+
+                        if(m_arrayAdapter.getCheckedList().size() == 0) {
+                            m_arrayAdapter.setCheckBoxCheckable(false);
+                            m_arrayAdapter.notifyDataSetChanged();
+                        }
                     }
                 }
 
@@ -135,19 +144,19 @@ public class MainActivity extends AppCompatActivity {
         m_listView.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-
-                if(m_arrayAdapter.isCheckable() != true) {
+                if(m_arrayAdapter.isCheckable() != true) { /* Start selected mode */
                     m_arrayAdapter.setCheckBoxCheckable(true);
-
-//                    CheckBox checkBox = (CheckBox) view.findViewById(R.id.rfileCheckBox);
-//                    checkBox.setVisibility(View.VISIBLE);
-
                     m_arrayAdapter.toggleCurrentRFile(view, true, m_arrayAdapter.getItem(position));
-                } else {
+                } else { /* Selected mode */
                     if(!m_arrayAdapter.isChecked(view)) {
                         m_arrayAdapter.toggleCurrentRFile(view, true, m_arrayAdapter.getItem(position));
                     } else {
                         m_arrayAdapter.toggleCurrentRFile(view, false, m_arrayAdapter.getItem(position));
+
+                        if(m_arrayAdapter.getCheckedList().size() == 0) {
+                            m_arrayAdapter.setCheckBoxCheckable(false);
+                            m_arrayAdapter.notifyDataSetChanged();
+                        }
                     }
                 }
 
@@ -201,19 +210,29 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        this.m_menu = menu;
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch(id) {
+            case R.id.action_settings:
+                return true;
+            case R.id.action_shared:
+                if(!m_arrayAdapter.isShareable()) {
+                    Toast.makeText(this, "Cannot shared folder.", Toast.LENGTH_LONG).show();
+                } else {
+                    if(shareFiles() == false) {
+                        Toast.makeText(this, "Your device is not support bluetooth.", Toast.LENGTH_LONG).show();
+                    }
+                }
+                return true;
+            default:
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -274,56 +293,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public boolean shareFiles() {
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if(bluetoothAdapter == null)
+            return false;
+
+        enableBlutooth();
+
+        return true;
+    }
+
 
     public void enableBlutooth() {
         Intent discoveryIntent = new Intent((BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE));
         discoveryIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVER_DURATION);
         startActivityForResult(discoveryIntent, REQUEST_BLU);
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == DISCOVER_DURATION && requestCode == REQUEST_BLU) {
             Intent intent = new Intent();
-            intent.setAction((Intent.ACTION_SEND));
-
-            //send audio file
-//            intent.setType("audio/*");
+            intent.setAction((Intent.ACTION_SEND_MULTIPLE));
             intent.setType("*/*");
 
+            ArrayList<Uri> uris = new ArrayList<Uri>();
+            ArrayList<RFile> files = m_arrayAdapter.getCheckedList();
 
-            File f = new File( path);
-            Log.e(TAG, "onActivityResult: " + f.getAbsolutePath());
-            if (f.exists()) {
-                intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(f));
-                PackageManager packageManager = getPackageManager();
-                List<ResolveInfo> appsList = packageManager.queryIntentActivities(intent, 0);
-                if ((appsList.size() > 0)) {
-                    String packageName = null;
-                    String ClassName = null;
-                    boolean found = false;
-                    for (ResolveInfo info : appsList) {
-                        packageName = info.activityInfo.packageName;
-                        if ((packageName.equals("com.android.bluetooth"))) {
-                            ClassName = info.activityInfo.name;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        Toast.makeText(this, " Blutooth  have been not found", Toast.LENGTH_LONG).show();
-                    } else {
-                        intent.setClassName(packageName, ClassName);
-                        startActivity(intent);
-                    }
-
-                }
-
-            } else {
-                Toast.makeText(this, " Blutooth is canceld", Toast.LENGTH_LONG).show();
+            for(int i = 0; i < files.size(); i++) {
+                File file = new File(files.get(i).getPath());
+                uris.add(Uri.fromFile(file));
             }
 
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            this.startActivity(intent);
         } else {
             Toast.makeText(this, "File Not Found", Toast.LENGTH_LONG).show();
         }
