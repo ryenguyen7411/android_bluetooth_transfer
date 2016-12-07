@@ -1,6 +1,8 @@
 package com.app.rye.filebrowser.data;
 
 import android.app.Activity;
+import android.graphics.Color;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,7 @@ import com.app.rye.filebrowser.R;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,14 +24,19 @@ import java.util.List;
 public class FileAdapter extends ArrayAdapter<File> {
 
     Activity context;
+    ArrayList<Pair<Integer, File>>      m_selectedFiles;
 
     boolean     m_isSelectedMode;
+    boolean     m_isShareable;
 
     public FileAdapter(Activity context, int layoutId, List<File> objects) {
         super(context, layoutId, objects);
         this.context = context;
 
         m_isSelectedMode = false;
+        m_isShareable = false;
+
+        m_selectedFiles = new ArrayList<Pair<Integer, File>>();
     }
 
     @Override
@@ -52,4 +60,31 @@ public class FileAdapter extends ArrayAdapter<File> {
     }
 
     public boolean isSelectedMode() { return m_isSelectedMode; }
+    public void toggleSelectedMode() { m_isSelectedMode = !m_isSelectedMode; }
+
+    public void toggleCurrentFile(View v, int position, File currentItem) {
+        boolean wasSelected = false;
+
+        for(int i = 0; i < m_selectedFiles.size(); i++) {
+            if(m_selectedFiles.get(i).first == position) {
+                wasSelected = true;
+                m_selectedFiles.remove(i);
+                break;
+            }
+        }
+
+        if(!wasSelected) m_selectedFiles.add(new Pair(position, currentItem));
+        v.setBackgroundColor(!wasSelected ? Color.LTGRAY : Color.WHITE);
+
+        if(m_selectedFiles.size() == 0) m_isSelectedMode = false;
+
+
+        m_isShareable = true;
+        for(int i = 0; i < m_selectedFiles.size(); i++) {
+            if(!m_selectedFiles.get(i).second.isFile()) {
+                m_isShareable = false;
+                break;
+            }
+        }
+    }
 }

@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id){
                 if(m_arrayAdapter.isSelectedMode()) {
-
+                    m_arrayAdapter.toggleCurrentFile(view, position, m_arrayAdapter.getItem(position));
                 } else {
                     String currentItemPath = m_arrayAdapter.getItem(position).getPath();
                     File currentItem = new File(currentItemPath);
@@ -63,6 +63,12 @@ public class MainActivity extends AppCompatActivity {
         m_listView.setOnItemLongClickListener(new ListView.OnItemLongClickListener(){
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id){
+                if(m_arrayAdapter.isSelectedMode()) {
+                    m_arrayAdapter.toggleCurrentFile(view, position, m_arrayAdapter.getItem(position));
+                } else {
+                    m_arrayAdapter.toggleSelectedMode();
+                    m_arrayAdapter.toggleCurrentFile(view, position, m_arrayAdapter.getItem(position));
+                }
 
                 return true;
             }
