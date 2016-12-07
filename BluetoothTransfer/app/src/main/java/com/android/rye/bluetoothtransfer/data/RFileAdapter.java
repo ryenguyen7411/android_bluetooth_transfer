@@ -1,6 +1,8 @@
 package com.android.rye.bluetoothtransfer.data;
 
 import android.app.Activity;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -8,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.rye.bluetoothtransfer.R;
@@ -47,6 +50,12 @@ public class RFileAdapter extends ArrayAdapter<RFile> {
 
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.rfileCheckBox);
         checkBox.setVisibility(m_isCheckable == true ? View.VISIBLE : View.GONE);
+
+//        ImageView icon = (ImageView) convertView.findViewById(R.id.rfileIcon);
+//        String uri = "mipmap/" + file.getThumbnail();
+//        int imageResource = context.getResources().getIdentifier(uri, null, context.getPackageName());
+//        Drawable image = ContextCompat.getDrawable(context, imageResource);
+//        icon.setImageDrawable(image);
 
         TextView tvName = (TextView) convertView.findViewById(R.id.rfileName);
         tvName.setText(file.getName());

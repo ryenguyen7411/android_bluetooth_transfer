@@ -36,6 +36,9 @@ import com.yalantis.contextmenu.lib.MenuParams;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemClickListener;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
 
+import me.imid.swipebacklayout.lib.SwipeBackLayout;
+import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,11 +47,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnMenuItemClickListener {
+public class MainActivity extends SwipeBackActivity  implements OnMenuItemClickListener, View.OnClickListener {
 
     ArrayList<RFile>        m_arrayList;
     RFileAdapter            m_arrayAdapter;
     ListView                m_listView;
+
+    private SwipeBackLayout m_swipeBackLayout;
 
     private static final int DISCOVER_DURATION = 300;
     private static final int REQUEST_BLU = 1;
@@ -129,6 +134,14 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
                 return true;
             }
         });
+
+        m_swipeBackLayout = getSwipeBackLayout();
+        m_swipeBackLayout.setEdgeTrackingEnabled(SwipeBackLayout.EDGE_LEFT);
+    }
+
+    @Override
+    public void onClick(View v) {
+        scrollToFinishActivity();
     }
 
 //    @Override
