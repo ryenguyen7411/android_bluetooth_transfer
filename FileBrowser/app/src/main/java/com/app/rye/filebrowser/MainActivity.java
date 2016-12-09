@@ -25,7 +25,14 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    enum ToolbarMode {
+        MODE_NONE,
+        MODE_SELECTED,
+        MODE_COPY
+    }
+
     ActionMode          m_actionMode;
+    ToolbarMode         m_mode;
 
     ListView            m_listView;
 
@@ -37,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //getActionBar().setTitle("CAB demo - Individual view");
+        m_mode = ToolbarMode.MODE_NONE;
 
         m_listView = (ListView) findViewById(R.id.lv_main);
         m_arrayList = FileHelper.GetFiles(Environment.getExternalStorageDirectory().getPath());
@@ -52,8 +59,10 @@ public class MainActivity extends AppCompatActivity {
                     m_arrayAdapter.toggleCurrentFile(view, position, m_arrayAdapter.getItem(position));
 
                     if(m_arrayAdapter.isSelectedMode()) {
+                        m_mode = ToolbarMode.MODE_SELECTED;
                         m_actionMode = MainActivity.this.startActionMode(new ActionBarCallback());
                     } else {
+                        m_mode = ToolbarMode.MODE_NONE;
                         m_actionMode.finish();
                     }
                 } else {
@@ -87,8 +96,10 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if(m_arrayAdapter.isSelectedMode()) {
+                    m_mode = ToolbarMode.MODE_SELECTED;
                     m_actionMode = MainActivity.this.startActionMode(new ActionBarCallback());
                 } else {
+                    m_mode = ToolbarMode.MODE_NONE;
                     m_actionMode.finish();
                 }
 
@@ -108,7 +119,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             // TODO Auto-generated method stub
-            mode.getMenuInflater().inflate(R.menu.cab_toolbar, menu);
+
+            switch (m_mode) {
+                case MODE_SELECTED:
+                    mode.getMenuInflater().inflate(R.menu.cab_toolbar, menu);
+                    break;
+                case MODE_COPY:
+                    mode.getMenuInflater().inflate(R.menu.cab_toolbar_copy, menu);
+                    break;
+                default:
+                    break;
+            }
+
             return true;
         }
 
@@ -122,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             // TODO Auto-generated method stub
 
-            mode.setTitle("CheckBox is Checked");
             return false;
         }
     }
