@@ -1,9 +1,13 @@
 package com.app.rye.filebrowser.helper;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
+
+import com.app.rye.filebrowser.R;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,17 +56,29 @@ public class FileHelper {
         return null;
     }
 
-    public static void CopyFiles(ArrayList<File> files, String outputPath) {
-        InputStream in = null;
-        OutputStream out = null;
+    public static void CopyFiles(ArrayList<File> files, String outputPath, Activity activity) {
+        InputStream in;
+        OutputStream out;
+
+        boolean isApplyAll = false;
+        int func = 0;       // 0: Cancel, 1: Rename, 2: Replace
 
         try {
             for(int i = 0; i < files.size(); i++) {
                 File file = files.get(i);
 
+//                File temp = new File(outputPath + "/" + file.getName());
+//                if(temp.exists()) {
+//                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity)
+//                            .setTitle("Confirmation")
+//                            .setMessage(file.getName() + " cannot be copied. There is already a file with this name in destination folder.");
+//                } else {
+//
+//                }
+
                 if(file.isFile()) {
                     in = new FileInputStream(file.getPath());
-                    out = new FileOutputStream(outputPath + file.getName());
+                    out = new FileOutputStream(outputPath + "/" + file.getName());
 
                     byte[] buffer = new byte[1024];
                     int read;
@@ -70,13 +86,12 @@ public class FileHelper {
                         out.write(buffer, 0, read);
                     }
                     in.close();
-                    in = null;
 
                     out.flush();
                     out.close();
-                    out = null;
                 } else if (file.isDirectory()) {
-                    CopyFiles(FileHelper.GetFiles(file.getPath()), outputPath + file.getName());
+                    CreateFolder(outputPath + "/" + file.getName());
+                    CopyFiles(FileHelper.GetFiles(file.getPath()), outputPath + "/" + file.getName(), activity);
                 }
             }
         } catch (Exception e) {
@@ -85,8 +100,8 @@ public class FileHelper {
     }
 
     public static void MoveFiles(ArrayList<File> files, String outputPath) {
-        InputStream in = null;
-        OutputStream out = null;
+        InputStream in;
+        OutputStream out;
 
         try {
             for(int i = 0; i < files.size(); i++) {
@@ -94,7 +109,7 @@ public class FileHelper {
 
                 if(file.isFile()) {
                     in = new FileInputStream(file.getPath());
-                    out = new FileOutputStream(outputPath + file.getName());
+                    out = new FileOutputStream(outputPath + "/" + file.getName());
 
                     byte[] buffer = new byte[1024];
                     int read;
@@ -102,15 +117,14 @@ public class FileHelper {
                         out.write(buffer, 0, read);
                     }
                     in.close();
-                    in = null;
 
                     out.flush();
                     out.close();
-                    out = null;
 
                     file.delete();
                 } else if (file.isDirectory()) {
-                    MoveFiles(FileHelper.GetFiles(file.getPath()), outputPath + file.getName());
+                    CreateFolder(outputPath + "/" + file.getName());
+                    MoveFiles(FileHelper.GetFiles(file.getPath()), outputPath + "/" + file.getName());
                 }
             }
         } catch (Exception e) {
@@ -123,14 +137,28 @@ public class FileHelper {
             for(int i = 0; i < files.size(); i++) {
                 File file = files.get(i);
 
-                if(file.isFile()) {
-                    file.delete();
-                } else if (file.isDirectory()) {
+                if (file.isDirectory()) {
                     DeleteFiles(FileHelper.GetFiles(file.getPath()));
                 }
+
+                file.delete();
             }
         } catch (Exception e) {
             Log.e("Delete Files", e.getMessage());
+        }
+    }
+
+    public static void CreateFolder(String path) {
+        try {
+            File folder = new File(path);
+
+            boolean success = true;
+            if(!folder.exists()) {
+                if (folder.mkdirs()) success = true;
+                else success = false;
+            }
+        } catch (Exception e) {
+            Log.e("Create folder", e.getMessage());
         }
     }
 }

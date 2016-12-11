@@ -1,5 +1,7 @@
 package com.app.rye.filebrowser;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
@@ -155,16 +157,50 @@ public class FileBrowserActivity extends AppCompatActivity {
                         }
                     }
                     break;
-                case R.id.action_copy:
+                case R.id.action_copy: {
                     Intent intent = new Intent(FileBrowserActivity.this, FileCopyActivity.class);
                     intent.putExtra("selected_file", new Gson().toJson(m_arrayAdapter.getSelectedFile()));
-                    intent.putExtra("btn_action", "Copy here");
+                    intent.putExtra("btn_action", 1);
 
                     SwipeBackActivityHelper.activityBuilder(FileBrowserActivity.this)
                             .intent(intent)
                             .needParallax(true)
                             .needBackgroundShadow(true)
                             .startActivity();
+                    break;
+                }
+                case R.id.action_cut: {
+                    Intent intent = new Intent(FileBrowserActivity.this, FileCopyActivity.class);
+                    intent.putExtra("selected_file", new Gson().toJson(m_arrayAdapter.getSelectedFile()));
+                    intent.putExtra("btn_action", 2);
+
+                    SwipeBackActivityHelper.activityBuilder(FileBrowserActivity.this)
+                            .intent(intent)
+                            .needParallax(true)
+                            .needBackgroundShadow(true)
+                            .startActivity();
+                    break;
+                }
+                case R.id.action_delete: {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(FileBrowserActivity.this)
+                            .setTitle("Delete file")
+                            .setMessage("Your selected file will be deleted.")
+                            .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    FileHelper.DeleteFiles(m_arrayAdapter.getSelectedFile());
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Toast.makeText(FileBrowserActivity.this, "Your files are safe.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                    alertDialog.show();
+
+                    break;
+                }
                 default:
                     break;
             }
