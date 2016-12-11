@@ -62,6 +62,17 @@ public class FileAdapter extends ArrayAdapter<File> {
     public boolean isSelectedMode() { return m_isSelectedMode; }
     public void toggleSelectedMode() { m_isSelectedMode = !m_isSelectedMode; }
 
+    public boolean isShareable() { return m_isShareable; }
+    public ArrayList<File> getSelectedFile() {
+        ArrayList<File> files = new ArrayList<File>();
+
+        for(int i = 0; i < m_selectedFiles.size(); i++) {
+            files.add(m_selectedFiles.get(i).second);
+        }
+
+        return files;
+    }
+
     public void toggleCurrentFile(View v, int position, File currentItem) {
         boolean wasSelected = false;
 

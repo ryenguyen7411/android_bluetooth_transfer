@@ -1,9 +1,11 @@
 package com.app.rye.filebrowser;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,11 +16,16 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 import android.widget.Toolbar;
 
 import com.app.rye.filebrowser.data.FileAdapter;
+import com.app.rye.filebrowser.helper.BluetoothHelper;
 import com.app.rye.filebrowser.helper.FileHelper;
 import com.github.bluzwong.swipeback.SwipeBackActivityHelper;
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -108,18 +115,67 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == BluetoothHelper.DISCOVER_DURATION && requestCode == BluetoothHelper.REQUEST_CODE) {
+            Intent intent = new Intent();
+            intent.setAction((Intent.ACTION_SEND_MULTIPLE));
+            intent.setType("*/*");
+
+            ArrayList<Uri> uris = new ArrayList<Uri>();
+            ArrayList<File> files = m_arrayAdapter.getSelectedFile();
+
+            for(int i = 0; i < files.size(); i++) {
+                File file = files.get(i);
+                uris.add(Uri.fromFile(file));
+            }
+
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            this.startActivity(intent);
+        } else {
+            Toast.makeText(this, "File Not Found", Toast.LENGTH_LONG).show();
+        }
+    }
+
     class ActionBarCallback implements ActionMode.Callback {
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            // TODO Auto-generated method stub
+            switch(item.getItemId()) {
+                case R.id.action_share:
+                    if(!m_arrayAdapter.isShareable()) {
+                        Toast.makeText(MainActivity.this, "Cannot shared folder.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Intent sharedIntent = BluetoothHelper.createSharedIntent();
+
+                        if(sharedIntent != null) {
+                            startActivityForResult(BluetoothHelper.createSharedIntent(), BluetoothHelper.REQUEST_CODE);
+                        } else {
+                            Toast.makeText(MainActivity.this, "Your device is not support bluetooth.", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                case R.id.action_copy:
+                    Intent intent = new Intent(MainActivity.this, FileCopyActivity.class);
+                    intent.putExtra("selected_file", new Gson().toJson(m_arrayAdapter.getSelectedFile()));
+                    intent.putExtra("btn_action", "Copy here");
+
+                    SwipeBackActivityHelper.activityBuilder(MainActivity.this)
+                            .intent(intent)
+                            .needParallax(true)
+                            .needBackgroundShadow(true)
+                            .startActivity();
+                case R.id.action_cut:
+
+                    break;
+                default:
+                    break;
+            }
+
             return false;
         }
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            // TODO Auto-generated method stub
-
             switch (m_mode) {
                 case MODE_SELECTED:
                     mode.getMenuInflater().inflate(R.menu.cab_toolbar, menu);
