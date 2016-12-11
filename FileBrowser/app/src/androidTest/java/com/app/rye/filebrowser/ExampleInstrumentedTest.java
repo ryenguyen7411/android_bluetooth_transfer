@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.app.rye.filebrowser", appContext.getPackageName());
+        assertEquals("com.app.rye.file_browser", appContext.getPackageName());
     }
 }
