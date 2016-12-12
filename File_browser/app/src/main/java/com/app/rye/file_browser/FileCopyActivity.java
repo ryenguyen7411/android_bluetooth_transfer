@@ -57,6 +57,7 @@ public class FileCopyActivity extends AppCompatActivity {
         m_arrayAdapter = new FileAdapter(FileCopyActivity.this, 1, m_arrayList);
 
         m_listView.setAdapter(m_arrayAdapter);
+        m_listView.setScrollingCacheEnabled(false);
 
         m_listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

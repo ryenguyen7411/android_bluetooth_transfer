@@ -2,6 +2,9 @@ package com.app.rye.file_browser.data;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +18,9 @@ import com.app.rye.file_browser.R;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -67,7 +72,43 @@ public class FileAdapter extends ArrayAdapter<File> {
         if(file.isDirectory()) {
             fileIcon.setImageResource(R.drawable.icon_folder);
         } else {
-            fileIcon.setImageResource(R.drawable.icon_file_unknown);
+            String extension = file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf(".") + 1);
+            int iconId = R.drawable.icon_file_unknown;
+
+            switch(extension) {
+                case "mp3":
+                    iconId = R.drawable.icon_file_mp3;
+                    break;
+                case "pdf":
+                    iconId = R.drawable.icon_file_pdf;
+                    break;
+                case "doc":
+                case "docx":
+                    iconId = R.drawable.icon_file_word;
+                    break;
+                case "xls":
+                case "xlsx":
+                    iconId = R.drawable.icon_file_excel;
+                    break;
+                case "ppt":
+                case "pptx":
+                    iconId = R.drawable.icon_file_powerpoint;
+                    break;
+                case "rar":
+                case "zip":
+                case "7z":
+                    iconId = R.drawable.icon_file_zip;
+                    break;
+                case "png":
+                case "jpg":
+                case "bmp":
+                    iconId = R.drawable.icon_file_image;
+                default:
+                    break;
+            }
+
+            Drawable image = ContextCompat.getDrawable(context, iconId);
+            fileIcon.setImageDrawable(image);
         }
 
         TextView tvName = (TextView) convertView.findViewById(R.id.tv_name);
@@ -76,8 +117,16 @@ public class FileAdapter extends ArrayAdapter<File> {
         TextView tvSize = (TextView) convertView.findViewById(R.id.tv_size);
         tvSize.setText("0 items");
 
+        if(file.isDirectory()) {
+            int count = file.listFiles().length;
+            tvSize.setText(count + " item" + (count == 1 ? "s" : ""));
+        } else {
+            tvSize.setText(file.length() + " byte.");
+        }
+
         TextView tvDateModified = (TextView) convertView.findViewById(R.id.tv_dateModified);
-        tvDateModified.setText("1 minute ago");
+        SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
+        tvDateModified.setText(format.format(file.lastModified()));
 
         return convertView;
     }

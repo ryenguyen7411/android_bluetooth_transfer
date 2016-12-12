@@ -60,6 +60,7 @@ public class FileBrowserActivity extends AppCompatActivity {
         m_arrayAdapter = new FileAdapter(FileBrowserActivity.this, 1, m_arrayList);
 
         m_listView.setAdapter(m_arrayAdapter);
+        m_listView.setScrollingCacheEnabled(false);
 
         m_listView.setOnItemClickListener(new ListView.OnItemClickListener(){
             @Override
