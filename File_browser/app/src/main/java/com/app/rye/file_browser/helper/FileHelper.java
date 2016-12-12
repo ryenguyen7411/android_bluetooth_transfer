@@ -2,8 +2,12 @@ package com.app.rye.file_browser.helper;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -60,21 +64,9 @@ public class FileHelper {
         InputStream in;
         OutputStream out;
 
-        boolean isApplyAll = false;
-        int func = 0;       // 0: Cancel, 1: Rename, 2: Replace
-
         try {
             for(int i = 0; i < files.size(); i++) {
                 File file = files.get(i);
-
-//                File temp = new File(outputPath + "/" + file.getName());
-//                if(temp.exists()) {
-//                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity)
-//                            .setTitle("Confirmation")
-//                            .setMessage(file.getName() + " cannot be copied. There is already a file with this name in destination folder.");
-//                } else {
-//
-//                }
 
                 if(file.isFile()) {
                     in = new FileInputStream(file.getPath());
@@ -160,5 +152,18 @@ public class FileHelper {
         } catch (Exception e) {
             Log.e("Create folder", e.getMessage());
         }
+    }
+
+    public static Bitmap GetThumbnail(ContentResolver cr, String path) {
+
+        Cursor ca = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new String[] { MediaStore.MediaColumns._ID }, MediaStore.MediaColumns.DATA + "=?", new String[] {path}, null);
+        if (ca != null && ca.moveToFirst()) {
+            int id = ca.getInt(ca.getColumnIndex(MediaStore.MediaColumns._ID));
+            ca.close();
+            return MediaStore.Images.Thumbnails.getThumbnail(cr, id, MediaStore.Images.Thumbnails.MICRO_KIND, null );
+        }
+
+        ca.close();
+        return null;
     }
 }

@@ -1,6 +1,7 @@
 package com.app.rye.file_browser.data;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.app.rye.file_browser.R;
+import com.app.rye.file_browser.helper.FileHelper;
 
 import org.w3c.dom.Text;
 
@@ -101,14 +103,20 @@ public class FileAdapter extends ArrayAdapter<File> {
                     break;
                 case "png":
                 case "jpg":
+                case "jpeg":
                 case "bmp":
                     iconId = R.drawable.icon_file_image;
                 default:
                     break;
             }
 
-            Drawable image = ContextCompat.getDrawable(context, iconId);
-            fileIcon.setImageDrawable(image);
+            if(iconId != R.drawable.icon_file_image) {
+                Drawable image = ContextCompat.getDrawable(context, iconId);
+                fileIcon.setImageDrawable(image);
+            } else {
+                Bitmap bitmap = FileHelper.GetThumbnail(context.getApplicationContext().getContentResolver(), file.getAbsolutePath());
+                fileIcon.setImageBitmap(bitmap);
+            }
         }
 
         TextView tvName = (TextView) convertView.findViewById(R.id.tv_name);
@@ -121,7 +129,7 @@ public class FileAdapter extends ArrayAdapter<File> {
             int count = file.listFiles().length;
             tvSize.setText(count + " item" + (count == 1 ? "s" : ""));
         } else {
-            tvSize.setText(file.length() + " byte.");
+            tvSize.setText(file.length() + " bytes.");
         }
 
         TextView tvDateModified = (TextView) convertView.findViewById(R.id.tv_dateModified);
