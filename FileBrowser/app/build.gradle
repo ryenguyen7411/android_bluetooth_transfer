@@ -5,11 +5,11 @@ android {
     buildToolsVersion "23.0.3"
     defaultConfig {
         applicationId "com.app.rye.file_browser"
-        minSdkVersion 19
+        minSdkVersion 17
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "android.suppgit add -ort.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
