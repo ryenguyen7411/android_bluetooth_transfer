@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -32,31 +33,33 @@ import org.json.JSONArray;
 import java.io.File;
 import java.util.ArrayList;
 
+enum Action {
+    ACTION_NONE,
+    ACTION_COPY,
+    ACTION_CUT,
+    ACTION_DELETE,
+    ACTION_CREATE_FOLDER
+}
+
 public class MainActivity extends AppCompatActivity {
 
-    enum ToolbarMode {
-        MODE_NONE,
-        MODE_SELECTED,
-        MODE_COPY
-    }
-
     ActionMode          m_actionMode;
-    ToolbarMode         m_mode;
-
     ListView            m_listView;
 
     ArrayList<File>     m_arrayList;
     FileAdapter         m_arrayAdapter;
+
+    String              m_currentPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        m_mode = ToolbarMode.MODE_NONE;
+        m_currentPath = Environment.getExternalStorageDirectory().getPath();
 
         m_listView = (ListView) findViewById(R.id.lv_main);
-        m_arrayList = FileHelper.GetFiles(Environment.getExternalStorageDirectory().getPath());
+        m_arrayList = FileHelper.GetFiles(m_currentPath);
         m_arrayAdapter = new FileAdapter(MainActivity.this, 1, m_arrayList);
 
         m_listView.setAdapter(m_arrayAdapter);
@@ -68,11 +71,10 @@ public class MainActivity extends AppCompatActivity {
                     m_arrayAdapter.toggleCurrentFile(view, position, m_arrayAdapter.getItem(position));
 
                     if(m_arrayAdapter.isSelectedMode()) {
-                        m_mode = ToolbarMode.MODE_SELECTED;
                         m_actionMode = MainActivity.this.startActionMode(new ActionBarCallback());
                     } else {
-                        m_mode = ToolbarMode.MODE_NONE;
                         m_actionMode.finish();
+                        m_actionMode = null;
                     }
                 } else {
                     String currentItemPath = m_arrayAdapter.getItem(position).getPath();
@@ -105,16 +107,31 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if(m_arrayAdapter.isSelectedMode()) {
-                    m_mode = ToolbarMode.MODE_SELECTED;
                     m_actionMode = MainActivity.this.startActionMode(new ActionBarCallback());
                 } else {
-                    m_mode = ToolbarMode.MODE_NONE;
                     m_actionMode.finish();
+                    m_actionMode = null;
                 }
 
                 return true;
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        m_arrayAdapter.unselectAll();
+        if(m_actionMode != null)
+            m_actionMode.finish();
+
+        m_arrayList.clear();
+        m_arrayList = FileHelper.GetFiles(m_currentPath);
+
+        m_arrayAdapter.clear();
+        m_arrayAdapter.addAll(m_arrayList);
+        m_arrayAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -136,6 +153,18 @@ public class MainActivity extends AppCompatActivity {
             this.startActivity(intent);
         } else {
             Toast.makeText(this, "File Not Found", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                m_arrayAdapter.unselectAll();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -209,17 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            switch (m_mode) {
-                case MODE_SELECTED:
-                    mode.getMenuInflater().inflate(R.menu.cab_toolbar, menu);
-                    break;
-                case MODE_COPY:
-                    mode.getMenuInflater().inflate(R.menu.cab_toolbar_copy, menu);
-                    break;
-                default:
-                    break;
-            }
-
+            mode.getMenuInflater().inflate(R.menu.cab_toolbar, menu);
             return true;
         }
 

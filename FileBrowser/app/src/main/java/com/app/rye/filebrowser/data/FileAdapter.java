@@ -77,9 +77,19 @@ public class FileAdapter extends ArrayAdapter<File> {
     public boolean isSelectedMode() { return m_isSelectedMode; }
     public void toggleSelectedMode() { m_isSelectedMode = !m_isSelectedMode; }
 
-    public void selectAll(boolean selected) {
-        for(int i = 0; i < m_selectedFiles.size(); i++) {
+    public void unselectAll() {
+         while(m_selectedFiles.size() > 0) {
+            Tuple item = m_selectedFiles.get(0);
+            toggleCurrentFile(item.third, item.first, item.second);
+         }
+    }
 
+    public void deleteAllSelected() {
+        while(m_selectedFiles.size() > 0) {
+            Tuple item = m_selectedFiles.get(0);
+            this.remove(this.getItem(item.first));
+
+            m_selectedFiles.remove(0);
         }
     }
 

@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.ActionMode;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,12 +31,14 @@ public class FileBrowserActivity extends AppCompatActivity {
     SwipeBackActivityHelper helper = new SwipeBackActivityHelper();
 
     ActionMode                  m_actionMode;
-    MainActivity.ToolbarMode    m_mode;
 
     ListView                m_listView;
 
     ArrayList<File>         m_arrayList;
     FileAdapter             m_arrayAdapter;
+
+    String                  m_currentPath;
+    Action                  m_savedAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,10 +52,11 @@ public class FileBrowserActivity extends AppCompatActivity {
                 .setNeedBackgroundShadow(true)
                 .init(this);
 
-        m_mode = MainActivity.ToolbarMode.MODE_NONE;
+        m_currentPath = getIntent().getStringExtra("currentPath");
+        m_actionMode = null;
 
         m_listView = (ListView) findViewById(R.id.lv_main);
-        m_arrayList = FileHelper.GetFiles(getIntent().getStringExtra("currentPath"));
+        m_arrayList = FileHelper.GetFiles(m_currentPath);
         m_arrayAdapter = new FileAdapter(FileBrowserActivity.this, 1, m_arrayList);
 
         m_listView.setAdapter(m_arrayAdapter);
@@ -63,11 +68,12 @@ public class FileBrowserActivity extends AppCompatActivity {
                     m_arrayAdapter.toggleCurrentFile(view, position, m_arrayAdapter.getItem(position));
 
                     if(m_arrayAdapter.isSelectedMode()) {
-                        m_mode = MainActivity.ToolbarMode.MODE_SELECTED;
-                        m_actionMode = FileBrowserActivity.this.startActionMode(new FileBrowserActivity.ActionBarCallback());
+                        if(m_actionMode == null) {
+                            m_actionMode = FileBrowserActivity.this.startActionMode(new FileBrowserActivity.ActionBarCallback());
+                        }
                     } else {
-                        m_mode = MainActivity.ToolbarMode.MODE_NONE;
                         m_actionMode.finish();
+                        m_actionMode = null;
                     }
                 } else {
                     String currentItemPath = m_arrayAdapter.getItem(position).getPath();
@@ -100,11 +106,12 @@ public class FileBrowserActivity extends AppCompatActivity {
                 }
 
                 if(m_arrayAdapter.isSelectedMode()) {
-                    m_mode = MainActivity.ToolbarMode.MODE_SELECTED;
-                    m_actionMode = FileBrowserActivity.this.startActionMode(new FileBrowserActivity.ActionBarCallback());
+                    if(m_actionMode == null) {
+                        m_actionMode = FileBrowserActivity.this.startActionMode(new FileBrowserActivity.ActionBarCallback());
+                    }
                 } else {
-                    m_mode = MainActivity.ToolbarMode.MODE_NONE;
                     m_actionMode.finish();
+                    m_actionMode = null;
                 }
 
                 return true;
@@ -115,6 +122,22 @@ public class FileBrowserActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         helper.finish();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        m_arrayAdapter.unselectAll();
+        if(m_actionMode != null)
+            m_actionMode.finish();
+
+        m_arrayList.clear();
+        m_arrayList = FileHelper.GetFiles(m_currentPath);
+
+        m_arrayAdapter.clear();
+        m_arrayAdapter.addAll(m_arrayList);
+        m_arrayAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -158,6 +181,8 @@ public class FileBrowserActivity extends AppCompatActivity {
                     }
                     break;
                 case R.id.action_copy: {
+                    m_savedAction = Action.ACTION_COPY;
+
                     Intent intent = new Intent(FileBrowserActivity.this, FileCopyActivity.class);
                     intent.putExtra("selected_file", new Gson().toJson(m_arrayAdapter.getSelectedFile()));
                     intent.putExtra("btn_action", 1);
@@ -170,6 +195,8 @@ public class FileBrowserActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.action_cut: {
+                    m_savedAction = Action.ACTION_CUT;
+
                     Intent intent = new Intent(FileBrowserActivity.this, FileCopyActivity.class);
                     intent.putExtra("selected_file", new Gson().toJson(m_arrayAdapter.getSelectedFile()));
                     intent.putExtra("btn_action", 2);
@@ -182,6 +209,8 @@ public class FileBrowserActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.action_delete: {
+                    m_savedAction = Action.ACTION_DELETE;
+
                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(FileBrowserActivity.this)
                             .setTitle("Delete file")
                             .setMessage("Your selected file will be deleted.")
@@ -189,6 +218,7 @@ public class FileBrowserActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     FileHelper.DeleteFiles(m_arrayAdapter.getSelectedFile());
+                                    m_arrayAdapter.deleteAllSelected();
                                 }
                             })
                             .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -210,24 +240,14 @@ public class FileBrowserActivity extends AppCompatActivity {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            switch (m_mode) {
-                case MODE_SELECTED:
-                    mode.getMenuInflater().inflate(R.menu.cab_toolbar, menu);
-                    break;
-                case MODE_COPY:
-                    mode.getMenuInflater().inflate(R.menu.cab_toolbar_copy, menu);
-                    break;
-                default:
-                    break;
-            }
-
+            mode.getMenuInflater().inflate(R.menu.cab_toolbar, menu);
             return true;
         }
 
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             // TODO Auto-generated method stub
-
+            m_arrayAdapter.unselectAll();
         }
 
         @Override
