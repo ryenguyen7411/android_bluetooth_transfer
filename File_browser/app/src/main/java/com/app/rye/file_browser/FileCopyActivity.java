@@ -1,13 +1,18 @@
 package com.app.rye.file_browser;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Pair;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -114,7 +119,34 @@ public class FileCopyActivity extends AppCompatActivity {
         btn_createFolder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                LayoutInflater li = LayoutInflater.from(FileCopyActivity.this);
+                View dialog = li.inflate(R.layout.dlg_create_folder, null);
+                final EditText et_create_folder = (EditText) dialog.findViewById(R.id.et_create_folder);
 
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(FileCopyActivity.this)
+                        .setView(dialog)
+                        .setCancelable(false)
+                        .setPositiveButton("Create", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                FileHelper.CreateFolder(m_currentFolder + "/" + et_create_folder.getText().toString());
+
+                                m_arrayList.clear();
+                                m_arrayList = FileHelper.GetFiles(m_currentFolder);
+
+                                m_arrayAdapter.clear();
+                                m_arrayAdapter.addAll(m_arrayList);
+                                m_arrayAdapter.notifyDataSetChanged();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                 alertDialog.create().show();
             }
         });
     }

@@ -1,6 +1,8 @@
 package com.app.rye.file_browser.data;
 
 import android.app.Activity;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -106,16 +108,31 @@ public class FileAdapter extends ArrayAdapter<File> {
                 case "jpeg":
                 case "bmp":
                     iconId = R.drawable.icon_file_image;
+                    break;
+                case "apk":
+                    iconId = R.drawable.icon_file_apk;
+                    break;
                 default:
                     break;
             }
 
-            if(iconId != R.drawable.icon_file_image) {
-                Drawable image = ContextCompat.getDrawable(context, iconId);
-                fileIcon.setImageDrawable(image);
-            } else {
-                Bitmap bitmap = FileHelper.GetThumbnail(context.getApplicationContext().getContentResolver(), file.getAbsolutePath());
-                fileIcon.setImageBitmap(bitmap);
+            switch(iconId) {
+                case R.drawable.icon_file_apk: {
+                    PackageManager pm = context.getPackageManager();
+                    PackageInfo pi = pm.getPackageArchiveInfo(file.getAbsolutePath(), 0);
+                    Drawable image = pi.applicationInfo.loadIcon(pm);
+                    fileIcon.setImageDrawable(image);
+                    break;
+                }
+                case R.drawable.icon_file_image: {
+                    Bitmap bitmap = FileHelper.GetThumbnail(context.getApplicationContext().getContentResolver(), file.getAbsolutePath());
+                    fileIcon.setImageBitmap(bitmap);
+                    break;
+                }
+                default:
+                    Drawable image = ContextCompat.getDrawable(context, iconId);
+                    fileIcon.setImageDrawable(image);
+                    break;
             }
         }
 
