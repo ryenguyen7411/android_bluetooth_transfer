@@ -27,4 +27,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:design:23.4.0'
     testCompile 'junit:junit:4.12'
+
+    compile 'com.yalantis:contextmenu:1.0.7'
+    compile 'me.imid.swipebacklayout.lib:library:1.0.0'
 }

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">FileBrowser</string>
+    <string name="checkbox_confirm">Apply to all items</string>
+
+    <string-array name="dlg_confirm">
+        <item>Apply to all items</item>
+    </string-array>
+</resources>
